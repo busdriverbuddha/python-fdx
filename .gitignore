@@ -133,3 +133,4 @@ dmypy.json
 
 # tests TODO: remove later
 tests
+test.py
