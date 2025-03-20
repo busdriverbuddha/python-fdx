@@ -14,6 +14,9 @@ class Paragraph(FDXNode):
     def __init__(self, xml_attrib):
         super().__init__(xml_attrib, tag="Paragraph")
 
+    def __repr__(self):
+        return f"Paragraph: {self.paragraph_type}"
+
     @property
     def paragraph_type(self):
         return self.xml_attrib.get("Type")

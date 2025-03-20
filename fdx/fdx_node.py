@@ -8,6 +8,9 @@ class FDXNode:
         self.xml_attrib = xml_attrib
         self.xml_text = ""
 
+    def __repr__(self):
+        return f"FDXNode: {self.tag}"
+
     def to_element(self):
         """Converts the FDXNode back to an XML element."""
         element = Element(self.tag, self.xml_attrib)
