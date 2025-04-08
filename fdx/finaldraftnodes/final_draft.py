@@ -1,7 +1,9 @@
-from xml.etree.ElementTree import ElementTree
+from xml.etree.ElementTree import ElementTree, Element
 
-from fdx.fdx_node import FDXNode
-from fdx.scene import Scene
+from fdx.finaldraftnodes.fdx_node import FDXNode
+from fdx.finaldraftnodes.content import Content
+from fdx.finaldraftnodes.paragraph import Paragraph
+from fdx.customnodes import Scene
 
 
 class FinalDraft(FDXNode):
@@ -10,27 +12,27 @@ class FinalDraft(FDXNode):
 
     def __init__(self, xml_attrib):
         super().__init__(xml_attrib, tag="FinalDraft")
-        self.content = None
+        self.content: Content | None = None
 
     def _initialize(self):
-        for child in self.children:
-            if child.tag == "Content":
+        for child in self:
+            if isinstance(child, Content):
                 self.content = child
                 break
 
         self.element_settings = {
             node.xml_attrib.get('Type'): node
-            for node in self.children
+            for node in self
             if node.tag == "ElementSettings"
         }
 
     def build_scenes(self):
 
-        self.scenes = list()
+        self.scenes: list[Scene] = list()
         assert self.content is not None
-        paragraphs = list(filter(lambda c: c.tag == "Paragraph", self.content.children))
-        this_paragraph_list = [paragraphs[0]]
-        for p in paragraphs[1:]:
+
+        this_paragraph_list = [self.paragraphs[0]]
+        for p in self.paragraphs[1:]:
             if p.paragraph_type == "Scene Heading":
                 self.scenes.append(Scene(this_paragraph_list))
                 this_paragraph_list = [p]
@@ -45,8 +47,12 @@ class FinalDraft(FDXNode):
             finaldraft (FinalDraft): The FinalDraft object to save.
             filename (str): Path to the FDX file to save.
         """
-        root_element = self.to_element()
-        tree = ElementTree(root_element)
+        root_element: Element = self.to_element()
+        tree: ElementTree = ElementTree(root_element)
         with open(filename, 'wb') as f:
             f.write(b'<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n')
             tree.write(f, encoding='utf-8', xml_declaration=False)
+
+    @property
+    def paragraphs(self) -> list[Paragraph]:
+        return list(filter(lambda c: isinstance(c, Paragraph), self.content.children))

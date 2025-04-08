@@ -1,26 +1,26 @@
 import inspect
 import pkgutil
 import importlib
+from types import ModuleType
+from xml.etree.ElementTree import parse, Element
 
-from xml.etree.ElementTree import parse
-
-from fdx.fdx_node import FDXNode
-from fdx.final_draft import FinalDraft
+from fdx.finaldraftnodes import FDXNode, FinalDraft
+from fdx.core.exceptions import FDXException
 
 
-def _str_to_class(classname):
+def _str_to_class(classname: str) -> type[FDXNode]:
     """Dynamically returns a class object if it exists within the fdx package, else FDXNode."""
-    classes = {}
-    package = __package__
+    classes: dict[str, type[FDXNode]] = {}
+    package: str = __package__
 
     try:
-        pkg = importlib.import_module(package)
+        pkg: ModuleType = importlib.import_module(package)
     except ImportError as e:
         raise ImportError(f"Cannot import package '{package}': {e}") from e
 
     for _, module_name, _ in pkgutil.walk_packages(path=pkg.__path__, prefix=package + "."):
         try:
-            module = importlib.import_module(module_name)
+            module: ModuleType = importlib.import_module(module_name)
             for name, cls in inspect.getmembers(module, inspect.isclass):
                 if cls.__module__ == module_name:
                     classes[name] = cls
@@ -30,9 +30,9 @@ def _str_to_class(classname):
     return classes.get(classname, FDXNode)
 
 
-def _node_to_object(node):
+def _node_to_object(node: Element) -> FDXNode:
     """Converts an XML node to an FDXNode object."""
-    this_class = _str_to_class(node.tag)
+    this_class: type[FDXNode] = _str_to_class(node.tag)
     if this_class is FDXNode:
         instance = FDXNode(node.attrib, tag=node.tag)
     else:
@@ -41,14 +41,15 @@ def _node_to_object(node):
     return instance
 
 
-def read_fdx(filename):
+def read_fdx(filename: str) -> FinalDraft:
     """Reads an FDX file and returns a FinalDraft object."""
     tree = parse(filename)
     root = tree.getroot()
-    assert root.tag == "FinalDraft", "Not a FinalDraft file."
+    if root.tag != "FinalDraft":
+        raise FDXException("Not a FinalDraft file.")
 
     finaldraft = _node_to_object(root)
-    queue = [(root, finaldraft)]
+    queue: list[tuple[Element, FDXNode]] = [(root, finaldraft)]
 
     while queue:
         node, instance = queue.pop()

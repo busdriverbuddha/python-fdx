@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="python-fdx-busdriverbuddha",
-    version="0.2dev",
+    version="0.2.0",
     author="Guilherme Gama",
     author_email="guilhermegama@gmail.com",
     description="FDX Interface",
@@ -17,5 +17,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         # TODO: complete licenses and OS
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.10",
 )

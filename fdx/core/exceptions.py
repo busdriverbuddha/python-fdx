@@ -1,0 +1,2 @@
+class FDXException(Exception):
+    pass
