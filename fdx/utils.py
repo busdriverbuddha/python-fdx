@@ -1,8 +1,9 @@
+import os
 import inspect
 import pkgutil
 import importlib
 from types import ModuleType
-from xml.etree.ElementTree import parse, Element
+import xml.etree.ElementTree as ET
 
 from fdx.finaldraftnodes import FDXNode, FinalDraft
 from fdx.core.exceptions import FDXException
@@ -30,7 +31,7 @@ def _str_to_class(classname: str) -> type[FDXNode]:
     return classes.get(classname, FDXNode)
 
 
-def _node_to_object(node: Element) -> FDXNode:
+def _node_to_object(node: ET.Element) -> FDXNode:
     """Converts an XML node to an FDXNode object."""
     this_class: type[FDXNode] = _str_to_class(node.tag)
     if this_class is FDXNode:
@@ -41,15 +42,38 @@ def _node_to_object(node: Element) -> FDXNode:
     return instance
 
 
-def read_fdx(filename: str) -> FinalDraft:
+def read_fdx(filename: os.PathLike) -> FinalDraft:
     """Reads an FDX file and returns a FinalDraft object."""
-    tree = parse(filename)
+    tree = ET.parse(filename)
     root = tree.getroot()
     if root.tag != "FinalDraft":
         raise FDXException("Not a FinalDraft file.")
 
     finaldraft = _node_to_object(root)
-    queue: list[tuple[Element, FDXNode]] = [(root, finaldraft)]
+    queue: list[tuple[ET.Element, FDXNode]] = [(root, finaldraft)]
+
+    while queue:
+        node, instance = queue.pop()
+        for child in node:
+            child_instance = _node_to_object(child)
+            instance.children.append(child_instance)
+            queue.insert(0, (child, child_instance))
+
+    if isinstance(finaldraft, FinalDraft):
+        finaldraft._initialize()
+
+    return finaldraft
+
+
+def read_string_to_finaldraft(string: str) -> FinalDraft:
+    """Reads an FDX string and returns a FinalDraft object."""
+    tree = ET.ElementTree(ET.fromstring(string))
+    root = tree.getroot()
+    if root.tag != "FinalDraft":
+        raise FDXException("Not a FinalDraft file.")
+
+    finaldraft = _node_to_object(root)
+    queue: list[tuple[ET.Element, FDXNode]] = [(root, finaldraft)]
 
     while queue:
         node, instance = queue.pop()

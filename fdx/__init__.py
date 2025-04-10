@@ -9,7 +9,7 @@ from .customnodes import (
     Scene,
 )
 
-from .utils import read_fdx
+from .utils import read_fdx, read_string_to_finaldraft
 
 from .core import FDXException
 
@@ -20,5 +20,6 @@ __all__ = [
     "FDXNode",
     "Scene",
     "read_fdx",
+    "read_string_to_finaldraft",
     "FDXException",
 ]
