@@ -55,3 +55,15 @@ class Scene:
             True if the scene is a preamble, False otherwise.
         """
         return self.paragraphs[0].paragraph_type != 'Scene Heading'
+
+    @property
+    def heading(self) -> Paragraph:
+        """Get the heading of the scene.
+
+        Returns:
+            The heading of the scene.
+        """
+        if not self.is_preamble:
+            return self.paragraphs[0]
+        else:
+            return None
