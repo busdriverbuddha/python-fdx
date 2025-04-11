@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="python-fdx-busdriverbuddha",
-    version="0.2.1",
+    name="python-fdx",
+    version="1.0.0",
     author="Guilherme Gama",
     author_email="guilhermegama@gmail.com",
     description="FDX Interface",
